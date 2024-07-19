@@ -13,6 +13,19 @@ def get_data(table_name, start_date, end_date):
         result = conn.execute(query, {"start_date": start_date, "end_date": end_date}).fetchall()
     return pd.DataFrame(result)
 
+# Endpoint API
+def api():
+    query_params = st.experimental_get_query_params()
+    table_name = query_params.get('table_name', [None])[0]
+    start_date = query_params.get('start_date', [None])[0]
+    end_date = query_params.get('end_date', [None])[0]
+
+    if table_name and start_date and end_date:
+        data = get_data(table_name, start_date, end_date)
+        st.json({"data": data.to_dict(orient='records')})
+    else:
+        st.json({"error": "Missing parameters"})
+
 # Interface utilisateur Streamlit
 def main():
     st.title('API via Streamlit')
@@ -28,23 +41,9 @@ def main():
         else:
             st.error('Veuillez entrer tous les paramètres.')
 
-# Endpoint API
-def api():
-    st.title('API Endpoint')
-    query_params = st.experimental_get_query_params()
-    table_name = query_params.get('table_name', [None])[0]
-    start_date = query_params.get('start_date', [None])[0]
-    end_date = query_params.get('end_date', [None])[0]
-
-    if table_name and start_date and end_date:
-        data = get_data(table_name, start_date, end_date)
-        st.json({"data": data.to_dict(orient='records')})
-    else:
-        st.json({"error": "Missing parameters"})
-
 # Sélection du mode
 query_params = st.experimental_get_query_params()
-if 'api' in query_params:
+if 'table_name' in query_params and 'start_date' in query_params and 'end_date' in query_params:
     api()
 else:
     main()
