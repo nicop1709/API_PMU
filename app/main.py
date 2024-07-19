@@ -34,7 +34,7 @@ def main():
 # Endpoint pour l'API
 def api():
     st.title('API Endpoint')
-    query_params = st.experimental_get_query_params()
+    query_params = st.query_params()
     table_name = query_params.get('table_name', [None])[0]
     start_date = query_params.get('start_date', [None])[0]
     end_date = query_params.get('end_date', [None])[0]
@@ -46,7 +46,7 @@ def api():
         st.json({"error": "Missing parameters"})
 
 # Sélectionnez le mode
-if 'api' in st.experimental_get_query_params():
+if 'api' in st.query_params():
     api()
 else:
     main()
