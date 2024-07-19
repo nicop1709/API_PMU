@@ -1,16 +1,37 @@
-from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy.orm import Session
-from .database import SessionLocal, engine, get_db
-from . import models, schemas
-from sqlalchemy import text
+import streamlit as st
+import pandas as pd
+from sqlalchemy import create_engine, text
 
-models.Base.metadata.create_all(bind=engine)
+# Configuration de la base de données
+DATABASE_URL = "postgresql://pgadmin:changepassword@192.168.1.91:5433/iapmu?client_encoding=utf8"
+engine = create_engine(DATABASE_URL)
 
-app = FastAPI()
+# Titre de l'application
+st.title('API via Streamlit')
 
-@app.get("/data")
-def get_data(table_name: str, start_date: str, end_date: str, db: Session = Depends(get_db)):
-    query = text(f"SELECT * FROM {table_name} WHERE \"dateCourse\" BETWEEN '{start_date}' AND '{end_date}'")
-    result = db.execute(query, {"start_date": start_date, "end_date": end_date}).fetchall()
-    data = [dict(row._mapping) for row in result]
-    return {"data": data}
+# Fonction pour obtenir les données de la base de données
+def get_data(table_name, start_date, end_date):
+    query = text(f"SELECT * FROM {table_name} WHERE \"dateCourse\" BETWEEN :start_date AND :end_date")
+    with engine.connect() as conn:
+        result = conn.execute(query, {"start_date": start_date, "end_date": end_date}).fetchall()
+    return pd.DataFrame(result)
+
+# Interface utilisateur pour entrer les paramètres
+table_name = st.text_input('Nom de la table')
+start_date = st.text_input('Date de début (YYYY-MM-DD)')
+end_date = st.text_input('Date de fin (YYYY-MM-DD)')
+
+if st.button('Obtenir les données'):
+    if table_name and start_date and end_date:
+        data = get_data(table_name, start_date, end_date)
+        st.write(data)
+    else:
+        st.error('Veuillez entrer tous les paramètres.')
+
+# Endpoint pour l'API
+@st.cache_resource
+def run_api():
+    st.write("API Endpoint")
+    st.write(f"/data?table_name={table_name}&start_date={start_date}&end_date={end_date}")
+    
+run_api()
