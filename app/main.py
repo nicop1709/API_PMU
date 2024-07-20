@@ -3,7 +3,7 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 
 # Configuration de la base de données
-DATABASE_URL = "postgresql://pgadmin:changepassword@192.168.1.91:5433/iapmu?client_encoding=utf8"
+DATABASE_URL = "postgresql://pgadmin:changepassword@1176.181.170.72:5433/iapmu?client_encoding=utf8"
 engine = create_engine(DATABASE_URL)
 
 # Fonction pour obtenir les données de la base de données
