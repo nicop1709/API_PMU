@@ -19,7 +19,7 @@ def get_data():
     if not table_name or not start_date or not end_date:
         return jsonify({"error": "Please provide table_name, start_date, and end_date"}), 400
 
-    query = text(f"SELECT * FROM {table_name} WHERE \"dateCourse\" BETWEEN :start_date AND :end_date AND \"isQuinte\" = \'{quinte}\'")
+    query = text(f"SELECT * FROM {table_name} WHERE \"dateCourse\" BETWEEN :start_date AND :end_date AND \"E_QUINTE_PLUS\" = \'{quinte}\'")
     with engine.connect() as conn:
         result = conn.execute(query, {"start_date": start_date, "end_date": end_date})
     
