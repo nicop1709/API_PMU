@@ -10,12 +10,12 @@ st.title('API via Streamlit')
 table_name = st.text_input('Nom de la table')
 start_date = st.text_input('Date de début (YYYY-MM-DD)')
 end_date = st.text_input('Date de fin (YYYY-MM-DD)')
-numReunion = st.text_input('numReunion')
+quinte = st.text_input('quinte')
 
 if st.button('Obtenir les données'):
     if table_name and start_date and end_date:
         try:
-            response = pd.read_json(f"{API_URL}?table_name={table_name}&start_date={start_date}&end_date={end_date}&discipline={numReunion}")
+            response = pd.read_json(f"{API_URL}?table_name={table_name}&start_date={start_date}&end_date={end_date}&quinte={quinte}")
             st.write(response)
         except URLError as e:
             st.error(f"Erreur lors de l'appel à l'API: {e}")
