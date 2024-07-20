@@ -3,7 +3,7 @@ import pandas as pd
 from urllib.error import URLError
 
 # URL de l'API exposée via ngrok
-API_URL = "https://afba-176-181-170-72.ngrok-free.app"
+API_URL = "https://afba-176-181-170-72.ngrok-free.app/data"
 
 st.title('API via Streamlit')
 
