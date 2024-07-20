@@ -1,48 +1,19 @@
 import streamlit as st
 import pandas as pd
-from sqlalchemy import create_engine, text
-from flask import Flask, jsonify, request
 
-# Configuration de la base de données
-DATABASE_URL = "postgresql://pgadmin:changepassword@176.181.170.72:5433/iapmu?client_encoding=utf8"
-engine = create_engine(DATABASE_URL)
-
-
-# Créer une application Flask
-app = Flask(__name__)
-
-# Fonction pour obtenir les données de la base de données
-def get_data(table_name, start_date, end_date):
-    query = text(f"SELECT * FROM {table_name} WHERE \"dateCourse\" BETWEEN :start_date AND :end_date")
-    with engine.connect() as conn:
-        result = conn.execute(query, {"start_date": start_date, "end_date": end_date}).fetchall()
-    return [dict(row) for row in result]
-
-# Définir un endpoint API
-@app.route('/data', methods=['GET'])
-def data():
-    table_name = request.args.get('table_name')
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
-    
-    if not table_name or not start_date or not end_date:
-        return jsonify({"error": "Missing parameters"}), 400
-    
-    try:
-        data = get_data(table_name, start_date, end_date)
-        return jsonify(data)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# Intégrer Flask avec Streamlit
-def run_flask():
-    app.run(port=5000)
-
+# Interface Streamlit
 st.title('API via Streamlit')
 
-if 'flask' not in st.session_state:
-    import threading
-    threading.Thread(target=run_flask).start()
-    st.session_state.flask = True
+table_name = st.text_input('Nom de la table')
+start_date = st.text_input('Date de début (YYYY-MM-DD)')
+end_date = st.text_input('Date de fin (YYYY-MM-DD)')
 
-st.write("L'application Streamlit est prête.")
+if st.button('Obtenir les données'):
+    if table_name and start_date and end_date:
+        try:
+            response = pd.read_json(f"http://localhost:5003/data?table_name={table_name}&start_date={start_date}&end_date={end_date}")
+            st.write(response)
+        except Exception as e:
+            st.error(f"Erreur lors de l'appel à l'API: {e}")
+    else:
+        st.error('Veuillez entrer tous les paramètres.')
