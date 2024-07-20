@@ -5,8 +5,10 @@ from sqlalchemy import create_engine, text
 DATABASE_URL = "postgresql+psycopg2://pgadmin:changepassword@176.181.170.72:5433/iapmu?client_encoding=utf8"
 engine = create_engine(DATABASE_URL)
 
+
 # Créer une application Flask
 app = Flask(__name__)
+
 @app.route('/data', methods=['GET'])
 def get_data():
     table_name = request.args.get('table_name')
@@ -18,9 +20,9 @@ def get_data():
 
     query = text(f"SELECT * FROM {table_name} WHERE \"dateCourse\" BETWEEN :start_date AND :end_date")
     with engine.connect() as conn:
-        result = conn.execute(query, {"start_date": start_date, "end_date": end_date}).fetchall()
+        result = conn.execute(query, {"start_date": start_date, "end_date": end_date})
     
-    data = [dict(row) for row in result]
+    data = [dict(row) for row in result.mappings()]
     return jsonify(data)
 
 if __name__ == '__main__':
