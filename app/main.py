@@ -7,6 +7,7 @@ from flask import Flask, jsonify, request
 DATABASE_URL = "postgresql://pgadmin:changepassword@176.181.170.72:5433/iapmu?client_encoding=utf8"
 engine = create_engine(DATABASE_URL)
 
+
 # Créer une application Flask
 app = Flask(__name__)
 
@@ -34,12 +35,14 @@ def data():
         return jsonify({"error": str(e)}), 500
 
 # Intégrer Flask avec Streamlit
-st.set_option('server.enableCORS', False)
-st.set_option('server.enableWebsocketCompression', False)
+def run_flask():
+    app.run(port=5000)
 
 st.title('API via Streamlit')
 
 if 'flask' not in st.session_state:
-    st.session_state.flask = app
+    import threading
+    threading.Thread(target=run_flask).start()
+    st.session_state.flask = True
 
 st.write("L'application Streamlit est prête.")
