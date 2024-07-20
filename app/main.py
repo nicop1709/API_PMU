@@ -1,49 +1,45 @@
 import streamlit as st
 import pandas as pd
 from sqlalchemy import create_engine, text
+from flask import Flask, jsonify, request
 
 # Configuration de la base de données
 DATABASE_URL = "postgresql://pgadmin:changepassword@176.181.170.72:5433/iapmu?client_encoding=utf8"
 engine = create_engine(DATABASE_URL)
+
+# Créer une application Flask
+app = Flask(__name__)
 
 # Fonction pour obtenir les données de la base de données
 def get_data(table_name, start_date, end_date):
     query = text(f"SELECT * FROM {table_name} WHERE \"dateCourse\" BETWEEN :start_date AND :end_date")
     with engine.connect() as conn:
         result = conn.execute(query, {"start_date": start_date, "end_date": end_date}).fetchall()
-    return pd.DataFrame(result)
+    return [dict(row) for row in result]
 
-# Endpoint API
-def api():
-    query_params = st.experimental_get_query_params()
-    table_name = query_params.get('table_name', [None])[0]
-    start_date = query_params.get('start_date', [None])[0]
-    end_date = query_params.get('end_date', [None])[0]
-
-    if table_name and start_date and end_date:
+# Définir un endpoint API
+@app.route('/data', methods=['GET'])
+def data():
+    table_name = request.args.get('table_name')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    if not table_name or not start_date or not end_date:
+        return jsonify({"error": "Missing parameters"}), 400
+    
+    try:
         data = get_data(table_name, start_date, end_date)
-        st.json({"data": data.to_dict(orient='records')})
-    else:
-        st.json({"error": "Missing parameters"})
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-# Interface utilisateur Streamlit
-def main():
-    st.title('API via Streamlit')
+# Intégrer Flask avec Streamlit
+st.set_option('server.enableCORS', False)
+st.set_option('server.enableWebsocketCompression', False)
 
-    table_name = st.text_input('Nom de la table')
-    start_date = st.text_input('Date de début (YYYY-MM-DD)')
-    end_date = st.text_input('Date de fin (YYYY-MM-DD)')
+st.title('API via Streamlit')
 
-    if st.button('Obtenir les données'):
-        if table_name and start_date and end_date:
-            data = get_data(table_name, start_date, end_date)
-            st.write(data)
-        else:
-            st.error('Veuillez entrer tous les paramètres.')
+if 'flask' not in st.session_state:
+    st.session_state.flask = app
 
-# Sélection du mode
-query_params = st.experimental_get_query_params()
-if 'table_name' in query_params and 'start_date' in query_params and 'end_date' in query_params:
-    api()
-else:
-    main()
+st.write("L'application Streamlit est prête.")
